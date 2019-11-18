@@ -49,21 +49,18 @@ void visit_function_decl (AST *ast) {
 	fprintf(fp, "@%s(", ast->decl.function.id->id.string);
 
 	if (params != NULL) {
-		ListNode *param = params->list.first;
-		for (int i = 0; i < params->list.num_items; i++) {
+		for (ListNode *param = params->list.first; param != NULL; param = param->next) {
 			printm("  param");
 
 			if (param->ast->decl.variable.type == TYPE_INT) {
 				fprintf(fp, "i32");
 
-				if (i < params->list.num_items - 1) {
+				if (param->next != NULL) {
 					fprintf(fp, ", ");
 				}
 			} else {
 				printf("Invalid variable type!");
 			}
-
-			param = param->next;
 		}
 		printm("\n");
 	}
