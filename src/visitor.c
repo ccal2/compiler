@@ -70,16 +70,24 @@ void visit_function_decl (AST *ast) {
 
 	fprintf(fp, ") #0 {\n");
 
+	ExprResult ret = { 0, VOID_CONSTANT };
 	if (ast->decl.function.stat_block != NULL) {
-		visit_stat_block(ast->decl.function.stat_block, params, ast->decl.function.type);
+		ret = visit_stat_block(ast->decl.function.stat_block, params, ast->decl.function.type);
 	}
 
-	if (type == TYPE_INT) {
-		fprintf(fp, "\tret i32 _return_value_\n}\n");//, _return_value_); // TODO: return value!
-	} else if (type == TYPE_VOID) {
+	switch (ret.type) {
+	case INTEGER_CONSTANT:
+		fprintf(fp, "\tret i32 %ld\n}\n", ret.int_value);
+		break;
+	case VOID_CONSTANT:
 		fprintf(fp, "\tret void\n}\n");
-	} else {
-		printf("Invalid function type!");
+		break;
+	case LLIR_REGISTER:
+		fprintf(fp, "\tret i32 _return_expression_\n}\n");//, _return_expression_);
+		break;
+	default:
+		printf("Invalid function return type!");
+		break;
 	}
 
 	printm("<<< function_decl\n");	
@@ -88,11 +96,12 @@ void visit_function_decl (AST *ast) {
 // what is surrounded by { }
 ExprResult visit_stat_block (AST *stat_block, AST *params, int return_type) {
 	printm(">>> stat_block\n");
-	ExprResult ret = { 0, TYPE_VOID };
+	ExprResult ret = { 0, VOID_CONSTANT };
 
 	for (ListNode *ptr = stat_block->list.first; ptr != NULL; ptr = ptr->next) {
 		ret = visit_stat(ptr->ast);
 	}
+
 	printm("<<< stat_block\n");
 	return  ret;
 }
@@ -100,7 +109,8 @@ ExprResult visit_stat_block (AST *stat_block, AST *params, int return_type) {
 
 ExprResult visit_stat (AST *stat) {
 	printm(">>> statement\n");
-	ExprResult ret = { 0, TYPE_VOID };
+	ExprResult ret = { 0, VOID_CONSTANT };
+
 	switch (stat->stat.type) {
 	case VARIABLE_DECLARATION:
 		visit_var_decl(stat); break;
@@ -110,10 +120,11 @@ ExprResult visit_stat (AST *stat) {
 		ret = visit_return_stat(stat); break;
 	case EXPRESSION_STATEMENT:
 		visit_expr(stat->stat.expr.expr); break;
-		default: fprintf(stderr, "UNKNOWN STATEMENT TYPE %c\n", stat->stat.type); break;
+	default: fprintf(stderr, "UNKNOWN STATEMENT TYPE %c\n", stat->stat.type); break;
 	}
-	return ret;
+
 	printm("<<< statement\n");
+	return ret;
 }
 
 void visit_var_decl (AST *ast) {
@@ -145,12 +156,14 @@ void visit_var_decl (AST *ast) {
 
 ExprResult visit_return_stat (AST *ast) {
 	printm(">>> return stat\n");
-	ExprResult ret = { 0, TYPE_VOID };
+	ExprResult ret = { 0, VOID_CONSTANT };
+
 	if (ast->stat.ret.expr) {
 		ret = visit_expr(ast->stat.ret.expr);
 	}
-	return ret;
+
 	printm("<<< return stat\n");
+	return ret;
 }
 
 void visit_assign_stat (AST *assign) {
@@ -162,6 +175,7 @@ void visit_assign_stat (AST *assign) {
 ExprResult visit_expr (AST *expr) {
 	printm(">>> expression\n");
 	ExprResult ret = {};
+
 	switch (expr->expr.type) {
 	case BINARY_EXPRESSION:
 		switch (expr->expr.binary_expr.operation) {
@@ -191,6 +205,7 @@ ExprResult visit_expr (AST *expr) {
 		fprintf(stderr, "UNKNOWN EXPRESSION TYPE %c\n", expr->expr.type);
 		break;
 	}
+
 	printm("<<< expression\n");
 	return ret;
 }
