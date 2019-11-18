@@ -36,16 +36,53 @@ void visit_file (AST *root) {
 void visit_function_decl (AST *ast) {
 	printm(">>> function_decl\n");
 	AST *params = ast->decl.function.param_decl_list;
+	int type = ast->decl.function.type;
+
+	fprintf(fp, "\ndefine ");
+
+	if (type == TYPE_INT) {
+		fprintf(fp, "i32 ");
+	} else if (type == TYPE_VOID) {
+		fprintf(fp, "void ");
+	}
+
+	fprintf(fp, "@%s(", ast->decl.function.id->id.string);
+
 	if (params != NULL) {
+		ListNode *param = params->list.first;
 		for (int i = 0; i < params->list.num_items; i++) {
 			printm("  param");
+
+			if (param->ast->decl.variable.type == TYPE_INT) {
+				fprintf(fp, "i32");
+
+				if (i < params->list.num_items - 1) {
+					fprintf(fp, ", ");
+				}
+			} else {
+				printf("Invalid variable type!");
+			}
+
+			param = param->next;
 		}
 		printm("\n");
 	}
+
+	fprintf(fp, ") #0 {\n");
+
 	if (ast->decl.function.stat_block != NULL) {
 		visit_stat_block(ast->decl.function.stat_block, params, ast->decl.function.type);
 	}
-	printm("<<< function_decl\n");
+
+	if (type == TYPE_INT) {
+		fprintf(fp, "\tret i32 _return_value_\n}\n");//, _return_value_); // TODO: return value!
+	} else if (type == TYPE_VOID) {
+		fprintf(fp, "\tret void\n}\n");
+	} else {
+		printf("Invalid function type!");
+	}
+
+	printm("<<< function_decl\n");	
 }
 
 // what is surrounded by { }
