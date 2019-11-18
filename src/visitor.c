@@ -4,9 +4,16 @@
 #include <assert.h>
 #include "visitor.h"
 
-#define printm(...) printf(__VA_ARGS__)
+#define printm(...) //printf(__VA_ARGS__)
+
+FILE *fp;
 
 void visit_file (AST *root) {
+	char *filename = root->list.first->ast->decl.function.token->filename;
+	filename[strlen(filename) - 2] = '\0';
+	filename = strcat(filename, ".ll");
+	fp = fopen(filename, "w");
+
 	printm(">>> file\n");
 	printm("file has %d declarations\n", root->list.num_items);
 
@@ -22,6 +29,8 @@ void visit_file (AST *root) {
 		}
 	}
 	printm("<<< file\n");
+
+	fclose(fp);
 }
 
 void visit_function_decl (AST *ast) {
@@ -75,8 +84,24 @@ void visit_var_decl (AST *ast) {
 	AST *id = ast->decl.variable.id;
 
 	if (ast->decl.variable.expr != NULL) {
+		if (id->id.flags == IS_GLOBAL) {
+			fprintf(fp, "@%s = global int32 ", id->id.string);
+		}
+
 		ExprResult expr = visit_expr(ast->decl.variable.expr);
+
+		if (expr.type == INTEGER_CONSTANT) {
+			fprintf(fp, "%ld", expr.int_value);
+		} else {
+			//
+		}
+	} else {
+		if (id->id.flags == IS_GLOBAL) {
+			fprintf(fp, "@%s = common global int32 0", id->id.string);
+		}
 	}
+
+	fprintf(fp, ", align 4\n");
 	printm("<<< var_decl\n");
 }
 
@@ -145,13 +170,15 @@ ExprResult visit_function_call (AST *ast) {
 			arg_expr[i++] = visit_expr(ptr->ast);
 		}
 	}
+
 	printm("<<< function_call\n");
 	return ret;
 }
 
 ExprResult visit_id (AST *ast) {
 	printm(">>> identifier\n");
-	ExprResult ret = {}; // armazenar aqui
+	ExprResult ret = {};
+
 	if (ast->id.type == TYPE_INT) {
 		ret.int_value = ast->id.int_value;
 		ret.type = TYPE_INT;
@@ -159,6 +186,7 @@ ExprResult visit_id (AST *ast) {
 		ret.float_value = ast->id.float_value;
 		ret.type = TYPE_FLOAT;
 	}
+
 	printm("<<< identifier\n");
 	return ret;
 }
@@ -166,6 +194,10 @@ ExprResult visit_id (AST *ast) {
 ExprResult visit_literal (AST *ast) {
 	printm(">>> literal\n");
 	ExprResult ret = {};
+
+	ret.type = INTEGER_CONSTANT;
+	ret.int_value = ast->expr.literal.int_value;
+
 	printm("<<< literal\n");
 	return ret;
 }
@@ -173,7 +205,14 @@ ExprResult visit_literal (AST *ast) {
 ExprResult visit_unary_minus (AST *ast) {
 	printm(">>> unary_minus\n");
 	ExprResult expr, ret = {};
+
 	expr = visit_expr(ast->expr.unary_minus.expr);
+
+	if (expr.type == INTEGER_CONSTANT) {
+		ret.type = INTEGER_CONSTANT;
+		ret.int_value = - expr.int_value;
+	}
+
 	printm("<<< unary_minus\n");
 	return ret;
 }
@@ -181,8 +220,15 @@ ExprResult visit_unary_minus (AST *ast) {
 ExprResult visit_add (AST *ast) {
 	printm(">>> add\n");
 	ExprResult left, right, ret = {};
+
 	left  = visit_expr(ast->expr.binary_expr.left_expr);
 	right = visit_expr(ast->expr.binary_expr.right_expr);
+
+	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
+		ret.type = INTEGER_CONSTANT;
+		ret.int_value = left.int_value + right.int_value;
+	}
+
 	printm("<<< add\n");
 	return ret;
 }
@@ -190,8 +236,15 @@ ExprResult visit_add (AST *ast) {
 ExprResult visit_sub (AST *ast) {
 	printm(">>> sub\n");
 	ExprResult left, right, ret = {};
+
 	left  = visit_expr(ast->expr.binary_expr.left_expr);
 	right = visit_expr(ast->expr.binary_expr.right_expr);
+
+	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
+		ret.type = INTEGER_CONSTANT;
+		ret.int_value = left.int_value - right.int_value;
+	}
+
 	printm("<<< sub\n");
 	return ret;
 }
@@ -199,8 +252,15 @@ ExprResult visit_sub (AST *ast) {
 ExprResult visit_mul (AST *ast) {
 	printm(">>> mul\n");
 	ExprResult left, right, ret = {};
+
 	left  = visit_expr(ast->expr.binary_expr.left_expr);
 	right = visit_expr(ast->expr.binary_expr.right_expr);
+
+	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
+		ret.type = INTEGER_CONSTANT;
+		ret.int_value = left.int_value * right.int_value;
+	}
+
 	printm("<<< mul\n");
 	return ret;
 }
@@ -208,8 +268,15 @@ ExprResult visit_mul (AST *ast) {
 ExprResult visit_div (AST *ast) {
 	printm(">>> div\n");
 	ExprResult left, right, ret = {};
+
 	left  = visit_expr(ast->expr.binary_expr.left_expr);
 	right = visit_expr(ast->expr.binary_expr.right_expr);
+
+	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
+		ret.type = INTEGER_CONSTANT;
+		ret.int_value = left.int_value / right.int_value;
+	}
+
 	printm("<<< div\n");
 	return ret;
 }
@@ -217,8 +284,15 @@ ExprResult visit_div (AST *ast) {
 ExprResult visit_mod (AST *ast) {
 	printm(">>> mod\n");
 	ExprResult left, right, ret = {};
+
 	left  = visit_expr(ast->expr.binary_expr.left_expr);
 	right = visit_expr(ast->expr.binary_expr.right_expr);
+
+	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
+		ret.type = INTEGER_CONSTANT;
+		ret.int_value = left.int_value % right.int_value;
+	}
+
 	printm("<<< mod\n");
 	return ret;
 }
