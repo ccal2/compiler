@@ -81,7 +81,7 @@ void visit_function_decl (AST *ast) {
 		fprintf(fp, "\tret void\n}\n");
 		break;
 	case LLIR_REGISTER:
-		fprintf(fp, "\tret i32 %ld\n}\n", ret.ssa_register);
+		fprintf(fp, "\tret i32 %%%ld\n}\n", ret.ssa_register);
 		break;
 	default:
 		printf("Invalid function return type!");
