@@ -307,6 +307,12 @@ ExprResult visit_unary_minus (AST *ast) {
 	if (expr.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
 		ret.int_value = - expr.int_value;
+	} else {
+		fprintf(fp, "\t%%%d = sub nsw i32 0,", ssa_counter);
+		visit_operand(expr);
+		fprintf(fp, "\n");
+		ret.type = LLIR_REGISTER;
+		ret.ssa_register = ssa_counter++;
 	}
 
 	printm("<<< unary_minus\n");
