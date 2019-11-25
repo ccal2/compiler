@@ -193,7 +193,11 @@ void visit_var_decl (AST *ast) {
 				fprintf(fp, "\tstore i32 %ld, i32 %%%ld, align 4\n", expr.int_value, id->id.ssa_register);
 			}
 		} else {
-			//
+			if (ast->decl.variable.type == TYPE_INT) {
+				fprintf(fp, "\tstore i32 0, i32 %%%ld, align 4\n", id->id.ssa_register);
+			} else {
+				printf("Invalid variable type!\n");
+			}
 		}
 	}
 
