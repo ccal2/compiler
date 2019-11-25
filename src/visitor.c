@@ -280,8 +280,12 @@ ExprResult visit_id (AST *ast) {
 	printm(">>> identifier\n");
 	ExprResult ret = {};
 
+	fprintf(fp, "\t%%%d = load i32, i32* %%%ld, align 4\n", ssa_counter, ast->id.ssa_register);
+	// ast->id.ssa_register = ssa_counter;
+
 	ret.type = LLIR_REGISTER;
-	ret.ssa_register = ast->id.ssa_register;
+	ret.ssa_register = ssa_counter;
+	ssa_counter++;
 
 	printm("<<< identifier\n");
 	return ret;
