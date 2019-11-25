@@ -190,14 +190,10 @@ void visit_var_decl (AST *ast) {
 		if (ast->decl.variable.expr != NULL) {
 			ExprResult expr = visit_expr(ast->decl.variable.expr);
 
-			if (expr.type == INTEGER_CONSTANT) {
-				fprintf(fp, "\tstore i32 %ld, i32 %%%ld, align 4\n", expr.int_value, id->id.ssa_register);
-				fprintf(fp, "\t%%%d = load i32, i32 %%%ld, align 4\n", ssa_counter, id->id.ssa_register);
-				id->id.ssa_register = ssa_counter;
-				ssa_counter++;
-			} else {
-				//
-			}
+			fprintf(fp, "\tstore i32 %ld, i32 %%%ld, align 4\n", expr.int_value, id->id.ssa_register);
+			fprintf(fp, "\t%%%d = load i32, i32 %%%ld, align 4\n", ssa_counter, id->id.ssa_register);
+			id->id.ssa_register = ssa_counter;
+			ssa_counter++;
 		} else {
 			//
 		}
