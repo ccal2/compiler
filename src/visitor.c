@@ -98,7 +98,7 @@ ExprResult visit_stat_block (AST *stat_block, AST *params, int return_type) {
 
 	ssa_counter = 1;
 
-	// alloca, store and load for params
+	// alloca and store for params
 	if (params != NULL) {
 		int i = 0;
 		ssa_counter += params->list.num_items;
@@ -110,9 +110,6 @@ ExprResult visit_stat_block (AST *stat_block, AST *params, int return_type) {
 				fprintf(fp, "\t%%%d = alloca i32, align 4\n", ssa_counter);
 				ssa_counter++;
 				fprintf(fp, "\tstore i32 %%%d, i32* %%%ld, align 4\n", i, param->ast->decl.variable.id->id.ssa_register);
-				fprintf(fp, "\t%%%d = load i32, i32* %%%ld, align 4\n", ssa_counter, param->ast->decl.variable.id->id.ssa_register);
-				param->ast->decl.variable.id->id.ssa_register = ssa_counter;
-				ssa_counter++;
 				i++;
 			} else {
 				printf("Invalid variable type!");
@@ -190,10 +187,11 @@ void visit_var_decl (AST *ast) {
 		if (ast->decl.variable.expr != NULL) {
 			ExprResult expr = visit_expr(ast->decl.variable.expr);
 
-			fprintf(fp, "\tstore i32 %ld, i32 %%%ld, align 4\n", expr.int_value, id->id.ssa_register);
-			fprintf(fp, "\t%%%d = load i32, i32 %%%ld, align 4\n", ssa_counter, id->id.ssa_register);
-			id->id.ssa_register = ssa_counter;
-			ssa_counter++;
+			if (expr.type == LLIR_REGISTER) {
+				fprintf(fp, "\tstore i32 %%%ld, i32 %%%ld, align 4\n", expr.ssa_register, id->id.ssa_register);
+			} else {
+				fprintf(fp, "\tstore i32 %ld, i32 %%%ld, align 4\n", expr.int_value, id->id.ssa_register);
+			}
 		} else {
 			//
 		}
