@@ -60,7 +60,7 @@ void visit_function_decl (AST *ast) {
 					fprintf(fp, ", ");
 				}
 			} else {
-				printf("Invalid variable type!");
+				printf("Invalid variable type!\n");
 			}
 		}
 		printm("\n");
@@ -84,7 +84,7 @@ void visit_function_decl (AST *ast) {
 		fprintf(fp, "\tret i32 %%%ld\n}\n", ret.ssa_register);
 		break;
 	default:
-		printf("Invalid function return type!");
+		printf("Invalid function return type!\n");
 		break;
 	}
 
@@ -112,7 +112,7 @@ ExprResult visit_stat_block (AST *stat_block, AST *params, int return_type) {
 				fprintf(fp, "\tstore i32 %%%d, i32* %%%ld, align 4\n", i, param->ast->decl.variable.id->id.ssa_register);
 				i++;
 			} else {
-				printf("Invalid variable type!");
+				printf("Invalid variable type!\n");
 			}
 		}
 	}
@@ -181,7 +181,7 @@ void visit_var_decl (AST *ast) {
 			fprintf(fp, "\t%%%d = alloca i32, align 4\n", ssa_counter);
 			ssa_counter++;
 		} else {
-			printf("Invalid variable type!");
+			printf("Invalid variable type!\n");
 		}
 
 		if (ast->decl.variable.expr != NULL) {
@@ -450,7 +450,7 @@ void visit_operand(ExprResult expr) {
 		fprintf(fp, "%%%ld", expr.ssa_register);
 		break; 
 	default:
-		printf("Invalid operand type!");
+		printf("Invalid operand type!\n");
 		break;
 	}
 }
