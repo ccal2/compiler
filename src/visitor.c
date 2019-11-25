@@ -323,6 +323,14 @@ ExprResult visit_add (AST *ast) {
 	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
 		ret.int_value = left.int_value + right.int_value;
+	} else {
+		fprintf(fp, "\t%%%d = add nsw i32 ", ssa_counter);
+		visit_operand(left);
+		fprintf(fp, ", ");
+		visit_operand(right);
+		fprintf(fp, "\n");
+		ret.type = LLIR_REGISTER;
+		ret.ssa_register = ssa_counter++;
 	}
 
 	printm("<<< add\n");
@@ -339,6 +347,14 @@ ExprResult visit_sub (AST *ast) {
 	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
 		ret.int_value = left.int_value - right.int_value;
+	} else {
+		fprintf(fp, "\t%%%d = sub nsw i32 ", ssa_counter);
+		visit_operand(left);
+		fprintf(fp, ", ");
+		visit_operand(right);
+		fprintf(fp, "\n");
+		ret.type = LLIR_REGISTER;
+		ret.ssa_register = ssa_counter++;
 	}
 
 	printm("<<< sub\n");
@@ -355,6 +371,14 @@ ExprResult visit_mul (AST *ast) {
 	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
 		ret.int_value = left.int_value * right.int_value;
+	} else {
+		fprintf(fp, "\t%%%d = mul nsw i32 ", ssa_counter);
+		visit_operand(left);
+		fprintf(fp, ", ");
+		visit_operand(right);
+		fprintf(fp, "\n");
+		ret.type = LLIR_REGISTER;
+		ret.ssa_register = ssa_counter++;
 	}
 
 	printm("<<< mul\n");
@@ -371,6 +395,14 @@ ExprResult visit_div (AST *ast) {
 	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
 		ret.int_value = left.int_value / right.int_value;
+	} else {
+		fprintf(fp, "\t%%%d = sdiv i32 ", ssa_counter);
+		visit_operand(left);
+		fprintf(fp, ", ");
+		visit_operand(right);
+		fprintf(fp, "\n");
+		ret.type = LLIR_REGISTER;
+		ret.ssa_register = ssa_counter++;
 	}
 
 	printm("<<< div\n");
