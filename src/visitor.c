@@ -220,6 +220,17 @@ ExprResult visit_return_stat (AST *ast) {
 void visit_assign_stat (AST *assign) {
 	printm(">>> assign stat\n");
 	ExprResult expr = visit_expr(assign->stat.assign.expr);
+
+	fprintf(fp, "\tstore i32 ");
+	visit_operand(expr);
+	fprintf(fp, ", ");
+
+	if (assign->stat.assign.id->id.flags == IS_GLOBAL) {
+		fprintf(fp, "i32 @%s, align 4\n", assign->stat.assign.id->id.string);
+	} else {
+		fprintf(fp, "i32 %%%ld, align 4\n", assign->stat.assign.id->id.ssa_register);
+	}
+
 	printm("<<< assign stat\n");
 }
 

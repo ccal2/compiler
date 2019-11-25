@@ -39,6 +39,7 @@ define i32 @function7(i32, i32) #0 {
 	%12 = load i32, i32* %5, align 4
 	%13 = add nsw i32 %11, %12
 	%14 = mul nsw i32 %10, %13
+	store i32 %14, i32 %4, align 4
 	%15 = load i32, i32* %5, align 4
 	%16 = load i32, i32* %4, align 4
 	%17 = sdiv i32 %16, 2
@@ -51,6 +52,7 @@ define void @kk(i32) #0 {
 	store i32 %0, i32* %2, align 4
 	%3 = load i32, i32* %2, align 4
 	%4 = sdiv i32 %3, 2
+	store i32 %4, i32 @arroz, align 4
 	ret void
 }
 
@@ -76,15 +78,18 @@ define i32 @aster(i32, i32, i32) #0 {
 	%18 = mul nsw i32 255, %17
 	%19 = load i32, i32* %7, align 4
 	%20 = sdiv i32 %18, %19
+	store i32 %20, i32 %4, align 4
 	%21 = load i32, i32* %5, align 4
 	%22 = mul nsw i32 255, %21
 	%23 = load i32, i32* %7, align 4
 	%24 = sdiv i32 %22, %23
+	store i32 %24, i32 %5, align 4
 	%25 = load i32, i32* %6, align 4
 	%26 = sub nsw i32 %25, 127
 	%27 = mul nsw i32 255, %26
 	%28 = load i32, i32* %7, align 4
 	%29 = sdiv i32 %27, %28
+	store i32 %29, i32 %6, align 4
 	%30 = load i32, i32* %4, align 4
 	%31 = load i32, i32* %5, align 4
 	%32 = add nsw i32 %30, %31
@@ -95,10 +100,13 @@ define i32 @aster(i32, i32, i32) #0 {
 
 define i32 @main() #0 {
 	%1 = alloca i32, align 4
+	store i32 0, i32 %1, align 4
 	%2 = alloca i32, align 4
 	store i32 %0, i32 %2, align 4
+	store i32 %0, i32 @nom_nom, align 4
 	%3 = load i32, i32* %2, align 4
 	%4 = load i32, i32* %0, align 4
 	%5 = sub nsw i32 %0, %4
+	store i32 %5, i32 %1, align 4
 	ret i32 0
 }
