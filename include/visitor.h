@@ -38,5 +38,6 @@ ExprResult visit_id (AST *ast);
 ExprResult visit_literal (AST *ast);
 ExprResult visit_unary_minus (AST *ast);
 ExprResult visit_function_call (AST *ast);
+void visit_operand(ExprResult expr);
 
 #endif // VISITOR_HEADER

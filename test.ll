@@ -6,7 +6,10 @@ define i32 @aqua_baldo() #0 {
 	store i32 160, i32 %1, align 4
 	%2 = load i32, i32 %1, align 4
 	%3 = alloca i32, align 4
-	%4 = alloca i32, align 4
+	%4 = srem i32 %2, 11
+	%5 = alloca i32, align 4
+	%6 = srem i32 11, %0
+	%7 = srem i32 %3, %5
 	ret i32 0
 }
 
@@ -18,6 +21,7 @@ define i32 @function7(i32, i32) #0 {
 	store i32 %1, i32* %5, align 4
 	%6 = load i32, i32* %5, align 4
 	%7 = alloca i32, align 4
+	%8 = srem i32 %4, %6
 	ret i32 0
 }
 

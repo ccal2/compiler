@@ -284,13 +284,8 @@ ExprResult visit_id (AST *ast) {
 	printm(">>> identifier\n");
 	ExprResult ret = {};
 
-	if (ast->id.type == TYPE_INT) {
-		ret.int_value = ast->id.int_value;
-		ret.type = TYPE_INT;
-	} else if (ast->id.type == TYPE_FLOAT) {
-		ret.float_value = ast->id.float_value;
-		ret.type = TYPE_FLOAT;
-	}
+	ret.type = LLIR_REGISTER;
+	ret.ssa_register = ast->id.ssa_register;
 
 	printm("<<< identifier\n");
 	return ret;
@@ -396,9 +391,30 @@ ExprResult visit_mod (AST *ast) {
 	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
 		ret.int_value = left.int_value % right.int_value;
+	} else {
+		fprintf(fp, "\t%%%d = srem i32 ", ssa_counter);
+		visit_operand(left);
+		fprintf(fp, ", ");
+		visit_operand(right);
+		fprintf(fp, "\n");
+		ret.type = LLIR_REGISTER;
+		ret.ssa_register = ssa_counter++;
 	}
 
 	printm("<<< mod\n");
 	return ret;
 }
 
+void visit_operand(ExprResult expr) {
+	switch (expr.type) {
+	case INTEGER_CONSTANT:
+		fprintf(fp, "%ld", expr.int_value);
+		break;
+	case LLIR_REGISTER:
+		fprintf(fp, "%%%ld", expr.ssa_register);
+		break; 
+	default:
+		printf("Invalid operand type!");
+		break;
+	}
+}
