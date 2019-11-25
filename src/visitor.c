@@ -7,6 +7,7 @@
 #define printm(...) //printf(__VA_ARGS__)
 
 FILE *fp;
+int ssa_counter = 0;
 
 void visit_file (AST *root) {
 	char *filename = root->list.first->ast->decl.function.token->filename;
@@ -80,7 +81,7 @@ void visit_function_decl (AST *ast) {
 		fprintf(fp, "\tret void\n}\n");
 		break;
 	case LLIR_REGISTER:
-		fprintf(fp, "\tret i32 _return_expression_\n}\n");//, _return_expression_);
+		fprintf(fp, "\tret i32 %ld\n}\n", ret.ssa_register);
 		break;
 	default:
 		printf("Invalid function return type!");
@@ -95,8 +96,42 @@ ExprResult visit_stat_block (AST *stat_block, AST *params, int return_type) {
 	printm(">>> stat_block\n");
 	ExprResult ret = { 0, VOID_CONSTANT };
 
-	for (ListNode *ptr = stat_block->list.first; ptr != NULL; ptr = ptr->next) {
+	ssa_counter = 1;
+
+	// alloca, store and load for params
+	if (params != NULL) {
+		int i = 0;
+		ssa_counter += params->list.num_items;
+
+		for (ListNode *param = params->list.first; param != NULL; param = param->next) {
+			if (param->ast->decl.variable.type == TYPE_INT) {
+				param->ast->decl.variable.id->id.type = NO_TYPE;
+				param->ast->decl.variable.id->id.ssa_register = ssa_counter;
+				fprintf(fp, "\t%%%d = alloca i32, align 4\n", ssa_counter);
+				ssa_counter++;
+				fprintf(fp, "\tstore i32 %%%d, i32* %%%ld, align 4\n", i, param->ast->decl.variable.id->id.ssa_register);
+				fprintf(fp, "\t%%%d = load i32, i32* %%%ld, align 4\n", ssa_counter, param->ast->decl.variable.id->id.ssa_register);
+				param->ast->decl.variable.id->id.ssa_register = ssa_counter;
+				ssa_counter++;
+				i++;
+			} else {
+				printf("Invalid variable type!");
+			}
+		}
+	}
+
+	// Visit variable declarations
+	ListNode *ptr = stat_block->list.first;
+	for (; ptr != NULL; ptr = ptr->next) {
+		if (ptr->ast->stat.type != VARIABLE_DECLARATION) {
+			break;
+		}
 		ret = visit_stat(ptr->ast);
+	}
+
+	// Visit other statements
+	for (ListNode *ptr2 = ptr; ptr2 != NULL; ptr2 = ptr2->next) {
+		ret = visit_stat(ptr2->ast);
 	}
 
 	printm("<<< stat_block\n");
@@ -128,25 +163,46 @@ void visit_var_decl (AST *ast) {
 	printm(">>> var_decl\n");
 	AST *id = ast->decl.variable.id;
 
-	if (ast->decl.variable.expr != NULL) {
-		if (id->id.flags == IS_GLOBAL) {
+	if (id->id.flags == IS_GLOBAL) {
+		if (ast->decl.variable.expr != NULL) {
 			fprintf(fp, "@%s = global int32 ", id->id.string);
+
+			ExprResult expr = visit_expr(ast->decl.variable.expr);
+
+			if (expr.type == INTEGER_CONSTANT) {
+				fprintf(fp, "%ld, align 4\n", expr.int_value);
+			} else {
+				//
+			}
+		} else {
+			fprintf(fp, "@%s = common global int32 0, align 4\n", id->id.string);
+		}
+	} else {
+		if (ast->decl.variable.type == TYPE_INT) {
+			id->id.type = NO_TYPE;
+			id->id.ssa_register = ssa_counter;
+			fprintf(fp, "\t%%%d = alloca i32, align 4\n", ssa_counter);
+			ssa_counter++;
+		} else {
+			printf("Invalid variable type!");
 		}
 
-		ExprResult expr = visit_expr(ast->decl.variable.expr);
+		if (ast->decl.variable.expr != NULL) {
+			ExprResult expr = visit_expr(ast->decl.variable.expr);
 
-		if (expr.type == INTEGER_CONSTANT) {
-			fprintf(fp, "%ld", expr.int_value);
+			if (expr.type == INTEGER_CONSTANT) {
+				fprintf(fp, "\tstore i32 %ld, i32 %%%ld, align 4\n", expr.int_value, id->id.ssa_register);
+				fprintf(fp, "\t%%%d = load i32, i32 %%%ld, align 4\n", ssa_counter, id->id.ssa_register);
+				id->id.ssa_register = ssa_counter;
+				ssa_counter++;
+			} else {
+				//
+			}
 		} else {
 			//
 		}
-	} else {
-		if (id->id.flags == IS_GLOBAL) {
-			fprintf(fp, "@%s = common global int32 0", id->id.string);
-		}
 	}
 
-	fprintf(fp, ", align 4\n");
 	printm("<<< var_decl\n");
 }
 
