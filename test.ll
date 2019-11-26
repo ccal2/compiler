@@ -40,10 +40,10 @@ define i32 @function7(i32, i32) #0 {
 	%13 = add nsw i32 %11, %12
 	%14 = mul nsw i32 %10, %13
 	store i32 %14, i32 %4, align 4
-	%15 = load i32, i32* %5, align 4
-	%16 = load i32, i32* %4, align 4
-	%17 = sdiv i32 %16, 2
-	%18 = sub nsw i32 %15, %17
+	%15 = load i32, i32* %4, align 4
+	%16 = sdiv i32 %15, 2
+	%17 = load i32, i32* %5, align 4
+	%18 = sub nsw i32 %17, %16
 	ret i32 %18
 }
 
@@ -104,9 +104,8 @@ define i32 @main() #0 {
 	%2 = alloca i32, align 4
 	store i32 %0, i32 %2, align 4
 	store i32 %0, i32 @nom_nom, align 4
-	%3 = load i32, i32* %2, align 4
-	%4 = load i32, i32* %0, align 4
-	%5 = sub nsw i32 %0, %4
-	store i32 %5, i32 %1, align 4
+	%3 = load i32, i32* @arroz, align 4
+	%4 = sub nsw i32 %0, %3
+	store i32 %4, i32 %1, align 4
 	ret i32 0
 }

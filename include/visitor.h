@@ -39,5 +39,6 @@ ExprResult visit_literal (AST *ast);
 ExprResult visit_unary_minus (AST *ast);
 ExprResult visit_function_call (AST *ast);
 void visit_operand(ExprResult expr);
+const char* id_ref(Identifier id);
 
 #endif // VISITOR_HEADER

@@ -223,13 +223,7 @@ void visit_assign_stat (AST *assign) {
 
 	fprintf(fp, "\tstore i32 ");
 	visit_operand(expr);
-	fprintf(fp, ", ");
-
-	if (assign->stat.assign.id->id.flags == IS_GLOBAL) {
-		fprintf(fp, "i32 @%s, align 4\n", assign->stat.assign.id->id.string);
-	} else {
-		fprintf(fp, "i32 %%%ld, align 4\n", assign->stat.assign.id->id.ssa_register);
-	}
+	fprintf(fp, ", i32 %s, align 4\n", id_ref(assign->stat.assign.id->id));
 
 	printm("<<< assign stat\n");
 }
@@ -293,12 +287,8 @@ ExprResult visit_id (AST *ast) {
 	printm(">>> identifier\n");
 	ExprResult ret = {};
 
-	fprintf(fp, "\t%%%d = load i32, i32* %%%ld, align 4\n", ssa_counter, ast->id.ssa_register);
-	// ast->id.ssa_register = ssa_counter;
-
 	ret.type = LLIR_REGISTER;
-	ret.ssa_register = ssa_counter;
-	ssa_counter++;
+	ret.ssa_register = ast->id.ssa_register;
 
 	printm("<<< identifier\n");
 	return ret;
@@ -321,6 +311,12 @@ ExprResult visit_unary_minus (AST *ast) {
 
 	expr = visit_expr(ast->expr.unary_minus.expr);
 
+	if (ast->expr.unary_minus.expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.unary_minus.expr->expr.id.id->id));
+		expr.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
+
 	if (expr.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
 		ret.int_value = - expr.int_value;
@@ -342,6 +338,18 @@ ExprResult visit_add (AST *ast) {
 
 	left  = visit_expr(ast->expr.binary_expr.left_expr);
 	right = visit_expr(ast->expr.binary_expr.right_expr);
+
+	if (ast->expr.binary_expr.left_expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.binary_expr.left_expr->expr.id.id->id));
+		left.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
+
+	if (ast->expr.binary_expr.right_expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.binary_expr.right_expr->expr.id.id->id));
+		right.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
 
 	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
@@ -367,6 +375,18 @@ ExprResult visit_sub (AST *ast) {
 	left  = visit_expr(ast->expr.binary_expr.left_expr);
 	right = visit_expr(ast->expr.binary_expr.right_expr);
 
+	if (ast->expr.binary_expr.left_expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.binary_expr.left_expr->expr.id.id->id));
+		left.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
+
+	if (ast->expr.binary_expr.right_expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.binary_expr.right_expr->expr.id.id->id));
+		right.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
+
 	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
 		ret.int_value = left.int_value - right.int_value;
@@ -390,6 +410,18 @@ ExprResult visit_mul (AST *ast) {
 
 	left  = visit_expr(ast->expr.binary_expr.left_expr);
 	right = visit_expr(ast->expr.binary_expr.right_expr);
+
+	if (ast->expr.binary_expr.left_expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.binary_expr.left_expr->expr.id.id->id));
+		left.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
+
+	if (ast->expr.binary_expr.right_expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.binary_expr.right_expr->expr.id.id->id));
+		right.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
 
 	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
@@ -415,6 +447,18 @@ ExprResult visit_div (AST *ast) {
 	left  = visit_expr(ast->expr.binary_expr.left_expr);
 	right = visit_expr(ast->expr.binary_expr.right_expr);
 
+	if (ast->expr.binary_expr.left_expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.binary_expr.left_expr->expr.id.id->id));
+		left.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
+
+	if (ast->expr.binary_expr.right_expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.binary_expr.right_expr->expr.id.id->id));
+		right.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
+
 	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
 		ret.int_value = left.int_value / right.int_value;
@@ -438,6 +482,18 @@ ExprResult visit_mod (AST *ast) {
 
 	left  = visit_expr(ast->expr.binary_expr.left_expr);
 	right = visit_expr(ast->expr.binary_expr.right_expr);
+
+	if (ast->expr.binary_expr.left_expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.binary_expr.left_expr->expr.id.id->id));
+		left.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
+
+	if (ast->expr.binary_expr.right_expr->expr.type == IDENTIFIER_EXPRESSION) {
+		fprintf(fp, "\t%%%d = load i32, i32* %s, align 4\n", ssa_counter, id_ref(ast->expr.binary_expr.right_expr->expr.id.id->id));
+		right.ssa_register = ssa_counter;
+		ssa_counter++;
+	}
 
 	if (left.type == INTEGER_CONSTANT && right.type == INTEGER_CONSTANT) {
 		ret.type = INTEGER_CONSTANT;
@@ -468,4 +524,16 @@ void visit_operand(ExprResult expr) {
 		printf("Invalid operand type!\n");
 		break;
 	}
+}
+
+const char* id_ref(Identifier id) {
+	static char ref[20];
+
+	if (id.flags == IS_GLOBAL) {
+		sprintf(ref, "@%s", id.string);
+	} else {
+		sprintf(ref, "%%%ld", id.ssa_register);
+	}
+
+	return ref;
 }
