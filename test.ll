@@ -102,10 +102,15 @@ define i32 @main() #0 {
 	%1 = alloca i32, align 4
 	store i32 0, i32 %1, align 4
 	%2 = alloca i32, align 4
-	store i32 %0, i32 %2, align 4
-	store i32 %0, i32 @nom_nom, align 4
-	%3 = load i32, i32* @arroz, align 4
-	%4 = sub nsw i32 %0, %3
-	store i32 %4, i32 %1, align 4
+	%3 = call i32 @aster(i32 123, i32 111, i32 240)
+	store i32 %3, i32 %2, align 4
+	%4 = call i32 @aqua_baldo()
+	store i32 %4, i32 @nom_nom, align 4
+	%5 = load i32, i32* %2, align 4
+	call void @kk(i32 5)
+	%6 = call i32 @function7(i32 7, i32 38)
+	%7 = load i32, i32* @arroz, align 4
+	%8 = sub nsw i32 %6, %7
+	store i32 %8, i32 %1, align 4
 	ret i32 0
 }

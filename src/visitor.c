@@ -266,18 +266,64 @@ ExprResult visit_expr (AST *expr) {
 	return ret;
 }
 
-// não implementar
 ExprResult visit_function_call (AST *ast) {
 	printm(">>> function_call\n");
 	ExprResult ret = {}, arg_expr[20]; //instead of alloca
 	AST *arg_list = ast->expr.function_call.expr_list;
+	int param_count = 0;
 
 	if (arg_list != NULL) {
 		int i = 0;
 		for (ListNode *ptr = arg_list->list.first; ptr != NULL; ptr = ptr->next) {
 			arg_expr[i++] = visit_expr(ptr->ast);
+			param_count++;
 		}
 	}
+
+	for (int i = 0; i < param_count; i++) {
+		if (arg_expr[i].type == LLIR_REGISTER) {
+			fprintf(fp, "\t%%%d = load i32, i32* %%%ld, align 4\n", ssa_counter, arg_expr[i].ssa_register);
+			arg_expr[i].type = INTEGER_CONSTANT;
+			arg_expr[i].ssa_register = ssa_counter;
+			ssa_counter++;
+		}
+	}
+
+	switch (ast->expr.function_call.id->id.type) {
+	case TYPE_INT:
+		fprintf(fp, "\t%%%d = call i32 @%s(", ssa_counter, ast->expr.function_call.id->id.string);
+		ret.type = LLIR_REGISTER;
+		ret.ssa_register = ssa_counter;
+		ssa_counter++;
+		break;
+	case TYPE_VOID:
+		fprintf(fp, "\tcall void @%s(", ast->expr.function_call.id->id.string);
+		ret.type = VOID_CONSTANT;
+		break;
+	default:
+		printf("Invalid function return type!");
+		break;
+	}
+
+	for (int i = 0; i < param_count; i++) {
+		if (arg_expr[i].type == INTEGER_CONSTANT) {
+			fprintf(fp, "i32 %ld", arg_expr[i].int_value);
+
+			if (i < param_count-1) {
+				fprintf(fp, ", ");
+			}
+		} else if (arg_expr[i].type == LLIR_REGISTER) {
+			fprintf(fp, "i32 %%%d", ssa_counter);
+
+			if (i < param_count-1) {
+				fprintf(fp, ", ");
+			}
+		} else {
+			//
+		}
+	}
+
+	fprintf(fp, ")\n");
 
 	printm("<<< function_call\n");
 	return ret;
