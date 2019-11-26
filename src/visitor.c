@@ -117,18 +117,8 @@ ExprResult visit_stat_block (AST *stat_block, AST *params, int return_type) {
 		}
 	}
 
-	// Visit variable declarations
-	ListNode *ptr = stat_block->list.first;
-	for (; ptr != NULL; ptr = ptr->next) {
-		if (ptr->ast->stat.type != VARIABLE_DECLARATION) {
-			break;
-		}
+	for (ListNode *ptr = stat_block->list.first; ptr != NULL; ptr = ptr->next) {
 		ret = visit_stat(ptr->ast);
-	}
-
-	// Visit other statements
-	for (ListNode *ptr2 = ptr; ptr2 != NULL; ptr2 = ptr2->next) {
-		ret = visit_stat(ptr2->ast);
 	}
 
 	printm("<<< stat_block\n");
